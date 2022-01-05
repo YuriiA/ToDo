@@ -1,42 +1,58 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from "react";
+import { TodoList } from "./TodoList";
 
-export function TodoForm() {
-    const [newTodo, setNewTodo] = useState('')
+export default function TodoForm(props) {
+  const [newTodo, setNewTodo] = useState(props.edit ? props.edit.value : "");
 
-    function handleChange(e) {
-        setNewTodo(e.target.value)
-    }
+  const inputRef = useRef(null);
+  useEffect(() => {
+    inputRef.current.focus();
+  });
 
-    async function handleSubmit(e) {
-        e.preventDefault();
-        const addNew = await fetch('http://localhost:3001/todos', {
-            method: 'POST',
-            headers: {
-                'Content-type': 'application/json',
-            },
-            body: JSON.stringify({
-                userId: 1,
-                title: newTodo,
-            }),
-        }).then((res) => res.json());
+  function handleChange(e) {
+    setNewTodo(e.target.value);
+  }
 
+  function handleSubmit(e) {
+    e.preventDefault();
 
+    props.onSubmit({
+      id: Math.floor(Math.random() * 100000000),
+      text: newTodo,
+    });
 
-        setNewTodo('')
+    setNewTodo("");
+  }
 
-    }
-
-    return (
-        <form className='todo-form' onSubmit={handleSubmit}>
-            <input onChange={handleChange}
-                className='todo-input'
-                type='text'
-                placeholder='Add a todo'
-                name='newTask'
-                value={newTodo}
-            />
-            <button className='todo-button'> Add </button>
-        </form>
-
-    )
+  return (
+    <form className="todo-form" onSubmit={handleSubmit}>
+      {props.edit ? (
+        <>
+          <input
+            onChange={handleChange}
+            ref={inputRef}
+            className="todo-input edit"
+            type="text"
+            placeholder="update your item"
+            name="text"
+            value={newTodo}
+          />
+          <button className="todo-button edit"> Update </button>
+        </>
+      ) : (
+        <>
+          <input
+            onChange={handleChange}
+            ref={inputRef}
+            className="todo-input"
+            type="text"
+            placeholder="Add a todo"
+            name="text"
+            value={newTodo}
+          />
+          <button className="todo-button"> Add </button>
+        </>
+      )}
+    </form>
+  );
 }

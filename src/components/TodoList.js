@@ -1,63 +1,52 @@
-import { useState, useEffect } from 'react'
-import { TodoForm } from './TodoForm'
-import { Todo } from './Todo'
-
+import { useState } from "react";
+import TodoForm from "./TodoForm";
+import { Todo } from "./Todo";
 
 export function TodoList() {
-    const [todos, setTodos] = useState([]);
+  const [todos, setTodos] = useState([]);
 
-    useEffect(() => {
+  function handleSubmit(todo) {
+    if (!todo.text || /^\s*$/.test(todo.text)) {
+      return;
+    }
+    setTodos([...todos, todo]);
+  }
 
-        fetch('http://localhost:3001/todos?userId=1')
-            .then((res) => res.json())
-            .then((data) => setTodos(data));
-    }, []);
+  function removeTodo(id) {
+    setTodos(todos.filter((todo) => todo.id !== id));
+  }
 
-    function addTodo(todo) {
-        if (!todo.newTask || /^\s*$/.test(todo.newTask)) {
-            return;
-        }
-
-        setTodos([todo, ...todos]);
+  function updateTodo(todoId, newValue) {
+    if (!newValue.text || /^\s*$/.test(newValue.text)) {
+      return;
     }
 
-    function updateTodo(todoId, newValue) {
-        if (!newValue.newTask || /^\s*$/.test(newValue.newTask)) {
-            return;
-        }
-    }
+    setTodos((prev) =>
+      prev.map((item) => (item.id === todoId ? newValue : item))
+    );
+  }
 
-    async function removeTodo(id) {
-        await fetch('http://localhost:3001/todos/' + id, {
-            method: 'DELETE',
-        });
+  function completeTodo(id) {
+    let updatedTodos = todos.map((todo) => {
+      if (todo.id === id) {
+        todo.isComplete = !todo.isComplete;
+      }
+      return todo;
+    });
+    setTodos(updatedTodos);
+  }
 
-        setTodos(todos.filter((todo) => todo.id !== id));
-    }
+  return (
+    <div className="todo-app">
+      <h1>Todo</h1>
+      <TodoForm onSubmit={handleSubmit} />
 
-
-
-    function completeTodo(id) {
-        let updatedTodos = todos.map(todo => {
-            if (todo.id === id) {
-                todo.isComplete = !todo.isComplete
-            }
-            return todo
-        });
-        setTodos(updatedTodos)
-    }
-
-    return (
-        <div>
-            <h1>Add a new To-do</h1>
-            <TodoForm onSubmit={addTodo} />
-            <Todo todos={todos}
-                completeTodo={completeTodo}
-                removeTodo={removeTodo}
-                updateTodo={updateTodo}
-            />
-
-        </div>
-    )
+      <Todo
+        todos={todos}
+        completeTodo={completeTodo}
+        removeTodo={removeTodo}
+        updateTodo={updateTodo}
+      />
+    </div>
+  );
 }
-
